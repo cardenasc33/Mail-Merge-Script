@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js" integrity="sha384-NaWTHo/8YCBYJ59830LTz/P4aQZK1sS0SneOgAvhsIl3zBu8r9RevNg5lHCHAuQ/" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.svg.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.2.2/jszip.js"></script>
+<script src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
+<script type="text/javascript" src="static/js/read-csv.js"></script>
+
+<script>
+
+    let peopleArray = [];
+    let firstNamesArray = [];
+    let lastNamesArray = [];
+    let acceptanceArray = [];
+    let scoresArray = [];
+    let listLength = 0;
+    let fileNames = [];
+
+    function convertToPDF() {
+        for (let i = 0; i < listLength; i++){
+            fileNames.push(lastNamesArray[i] + firstNamesArray[i] + "Letter.pdf");
+        }
+        console.log(fileNames);
+        //html2canvas(document.querySelector())
+    }
+
+    function downloadPages(){
+        var zip = new JSZip();
+        for (let i = 0; i < listLength; i++){
+            var doc = new jsPDF();
+            
+            let mainZip = new JSZip();
+
+            var source = document.querySelector(".letterDiv" + i);
+            doc.fromHTML(source, 10, 10);
+
+            console.log("names", fileNames[i]);
+            //zip.file(fileNames[i], doc.output());
+            zip.folder("decision_letters").file(fileNames[i], doc.output());
+            //doc.save(fileNames[i]);
+        }
+
+        //generates zip file of all letters
+        zip.generateAsync({ type: "blob" })
+                .then(function (content) {
+  	                saveAs(content, "decision_letters.zip");
+            });
+       
+        //TODO letter margins 
+    }
+
+    function getAsText(fileToRead) {
+        let reader = new FileReader();
+
+        reader.readAsText(fileToRead);
+
+        //encounters when read is successful
+        reader.onload = loadHandler;
+        //encounters when read is unsuccessful
+        reader.onerror = errorHandler;
+    }
+
+    function handleFiles(files) {
+        if (window.FileReader) {
+            getAsText(files[0]);
+            fileUploaded = true;
+        } else {
+            alert("FileReader not supported in browser.");
+        }
+    }
+
+    function loadHandler(event) {
+        let csv = event.target.result;
+        processData(csv);
+    }
+
+    function errorHandler(event) {
+        if (event.target.error.name == "NotReadableError") {
+            alert("Cannot read file!");
+        }
+    }
+
+    function processData(csv) {
+        //split text string so it can read properly (characters and new lines)
+        var allTextLines = csv.split(/\r\n|\n/);
+        //peopleArray = []; uncomment to reset
+
+        //Start at 1 skips the header row.
+        for (let i = 1; i < allTextLines.length; i++) {
+            let row = allTextLines[i].split(',');
+
+            let col = []; //reset
+
+            for (let j = 0; j < row.length; j++) {
+                col.push(row[j]);
+            }
+            peopleArray.push(col);
+        }
+        console.log(peopleArray);
+        populateFields(peopleArray);
+    }
+    
+    function populateFields(peopleArray){
+
+
+        for (let i = 0; i < peopleArray.length; i++){
+            //Populate field arrays
+            firstNamesArray.push(peopleArray[i][0]);
+            lastNamesArray.push(peopleArray[i][1]);
+            acceptanceArray.push(peopleArray[i][2]);
+            scoresArray.push(peopleArray[i][3]);
+        }
+    
+        console.log("FirstNames: ", firstNamesArray);
+        console.log("LastNames: ", lastNamesArray);
+        console.log("Acceptance info: ", acceptanceArray);
+        console.log("Scores: ", scoresArray);
+
+        listLength = peopleArray.length;
+        generateMessages(firstNamesArray, lastNamesArray, acceptanceArray, scoresArray, listLength);
+
+        convertToPDF();
+    }
+
+    //Auto generates customized email messages for each person in the file.
+    function generateMessages(firstNamesArray, lastNamesArray, acceptanceArray, scoresArray, listLength){
+        //outer body div
+        let mailBodyDiv = document.getElementById('mail-body');
+
+        let count = 0;
+        for (let i = 0; i < listLength ; i++){
+            
+            //Creates a new container div for each person's letter
+            let customBodyDiv = document.createElement('div');
+            customBodyDiv.className = "letterDiv" + i;
+
+            let p1 = document.createElement('p');
+            p1.innerHTML = "Dear " + firstNamesArray[i] + ",\n";
+            
+            let p2 = document.createElement('p');
+            p2.innerHTML = "We are grateful you applied.\n";
+
+            let p3 = document.createElement('p');
+            let decision = (acceptanceArray[i] == 'accepted') ? 'accept' : 'denied';
+            p3.innerHTML = "We had decided to " + decision + " your application.";
+            
+            let p4 = document.createElement('p');
+            p4.innerHTML = "The reason being your score was " + scoresArray[i] + ".";
+
+            let p5 = document.createElement('p');
+            p5.innerHTML = "Thank you " + firstNamesArray[i] + ".";
+
+            let p6 = document.createElement('p');
+            p6.innerHTML = "Sincerely, ";
+
+            let p7 = document.createElement('p');
+            p7.innerHTML = "University Admissions";
+
+            customBodyDiv.appendChild(p1);
+            customBodyDiv.appendChild(p2);
+            customBodyDiv.appendChild(p3);
+            customBodyDiv.appendChild(p4);
+            customBodyDiv.appendChild(p5);
+            customBodyDiv.appendChild(p6);
+            customBodyDiv.appendChild(p7);
+            
+            let breakLine = document.createElement("br");
+            customBodyDiv.appendChild(breakLine);
+            
+            mailBodyDiv.appendChild(customBodyDiv);
+        }
+        
+        mailBodyDiv.setAttribute('id', 'mail-body');
+        
+        document.body.appendChild(mailBodyDiv);
+    }
+
+
+    /*
+    function create_zip() {
+  var fileURL = $('#file').attr('href');
+  var request = $.ajax({
+    url: fileURL,
+    type: "GET",
+    contentType: "application/pdf",
+    mimeType:'text/plain; charset=x-user-defined' // <-[1]
+  });     
+
+  request.done(function( data ) {
+    var zip = new JSZip();
+    zip.file("my_file.pdf", data, { binary: true }); // <- [2]
+    content = zip.generate();
+    location.href = "data:application/zip;base64," + content;
+  });       
+}
+    */
+
+</script>
+    <div id = "mail-message">
+        <input type="file" id="csvFileInput" onchange = "handleFiles(this.files)" accept=".csv">
+        <button id = "download-btn" onclick = "downloadPages()">Download</button>
+        <h1>Mail</h1>
+
+        <div id = "mail-body">
+            
+        
+        </div>
+    </div>
+
+
+</body>
+</html>
