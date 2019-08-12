@@ -2,7 +2,7 @@
 <html>
 <body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js" integrity="sha384-NaWTHo/8YCBYJ59830LTz/P4aQZK1sS0SneOgAvhsIl3zBu8r9RevNg5lHCHAuQ/" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.svg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.3/dist/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.2.2/jszip.js"></script>
 <script src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
 <script type="text/javascript" src="static/js/read-csv.js"></script>
@@ -16,6 +16,32 @@
     let scoresArray = [];
     let listLength = 0;
     let fileNames = [];
+    let letterDivNames = [];
+
+    
+    function capturePage() {
+        var zip = new JSZip();
+    
+        for (let x in letterDivNames){
+            
+            html2canvas(document.querySelector(".letterDiv" + x)).then(canvas => {
+                var letterAsImage = canvas.toDataURL("image/png");
+                //var doc = new jsPDF('p', 'in', [11,8.5]);
+                var doc = new jsPDF();
+
+                var width = doc.internal.pageSize.getWidth();
+                var height = doc.internal.pageSize.getHeight();
+
+                doc.addImage(letterAsImage, 'PNG', 0, 0, width, height);
+
+                ///US Letter at 300dpi (print): 2550 pixels x 3300 pixels
+                doc.save('sample.pdf');
+            });
+        }
+        //html2canvas(document.getElementById)
+        
+    }
+
 
     function convertToPDF() {
         for (let i = 0; i < listLength; i++){
@@ -24,8 +50,9 @@
         console.log(fileNames);
         //html2canvas(document.querySelector())
     }
-
+    /*
     function downloadPages(){
+        
         var zip = new JSZip();
         for (let i = 0; i < listLength; i++){
             var doc = new jsPDF();
@@ -47,8 +74,11 @@
   	                saveAs(content, "decision_letters.zip");
             });
        
-        //TODO letter margins 
+        
+
+        capturePage();
     }
+    */
 
     function getAsText(fileToRead) {
         let reader = new FileReader();
@@ -133,8 +163,22 @@
             
             //Creates a new container div for each person's letter
             let customBodyDiv = document.createElement('div');
-            customBodyDiv.className = "letterDiv" + i;
 
+            //Dimensions 
+            //US Letter at 72dpi (web view): 612 pixels x 792 pixels
+            //US Letter at 300dpi (print): 2550 pixels x 3300 pixels
+            customBodyDiv.className = "letterDiv" + i;
+            letterDivNames.push("letterDiv" + i);
+
+            customBodyDiv.style.width = '612px'; //8.5in
+            customBodyDiv.style.height = '792px'; //11in
+            customBodyDiv.style.borderStyle = 'solid';
+
+            let logoImg = document.createElement('img');
+            logoImg.setAttribute('src', './primary-logo.PNG');
+            logoImg.setAttribute('width', '100px');
+            logoImg.setAttribute('height', '100px');
+            
             let p1 = document.createElement('p');
             p1.innerHTML = "Dear " + firstNamesArray[i] + ",\n";
             
@@ -157,6 +201,7 @@
             let p7 = document.createElement('p');
             p7.innerHTML = "University Admissions";
 
+            customBodyDiv.appendChild(logoImg);
             customBodyDiv.appendChild(p1);
             customBodyDiv.appendChild(p2);
             customBodyDiv.appendChild(p3);
@@ -199,7 +244,7 @@
 </script>
     <div id = "mail-message">
         <input type="file" id="csvFileInput" onchange = "handleFiles(this.files)" accept=".csv">
-        <button id = "download-btn" onclick = "downloadPages()">Download</button>
+        <button id = "download-btn" onclick = "capturePage()">Download</button>
         <h1>Mail</h1>
 
         <div id = "mail-body">
