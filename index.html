@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <link rel="stylesheet" href="index.css">
+</head>
 <body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js" integrity="sha384-NaWTHo/8YCBYJ59830LTz/P4aQZK1sS0SneOgAvhsIl3zBu8r9RevNg5lHCHAuQ/" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.3/dist/html2canvas.min.js"></script>
@@ -22,25 +25,44 @@
     function capturePage() {
         var zip = new JSZip();
     
-        for (let x in letterDivNames){
-            
-            html2canvas(document.querySelector(".letterDiv" + x)).then(canvas => {
+        for (let i = 0; i < listLength; i++){
+            html2canvas(document.querySelector("#id" + i)).then(canvas => {
                 var letterAsImage = canvas.toDataURL("image/png");
-                //var doc = new jsPDF('p', 'in', [11,8.5]);
-                var doc = new jsPDF();
+                var doc = new jsPDF('p', 'mm', [161.925,209.55]);
+                //var doc = new jsPDF();
 
                 var width = doc.internal.pageSize.getWidth();
                 var height = doc.internal.pageSize.getHeight();
 
-                doc.addImage(letterAsImage, 'PNG', 0, 0, width, height);
-
+                doc.addImage(letterAsImage, 'JPEG', 0, 0, width, height);
                 ///US Letter at 300dpi (print): 2550 pixels x 3300 pixels
-                doc.save('sample.pdf');
+                //printing at 595x841
+                
+                //doc.save( lastNamesArray[i] + "_" + firstNamesArray[i] + '.pdf');
+                let pdf = doc.output("blob", lastNamesArray[i] + "_" + firstNamesArray[i] + '.pdf');
+                console.log("output", pdf);
+                doc.save(lastNamesArray[i] + "_" + firstNamesArray[i] + '.pdf');
+                 //doc.output("blob", lastNamesArray[i] + "_" + firstNamesArray[i] + '.pdf')
+                //zip.folder("decision_letters").file(lastNamesArray[i] + "_" + firstNamesArray[i] + '.pdf', pdf, {base64: true});
+                
             });
-        }
-        //html2canvas(document.getElementById)
+        }//end of for loop
+        //saveAs(zip, "decision_letters")
+
+        //binary, base64
+        //generates zip file of all letters
         
-    }
+        /*
+        zip.generateAsync({ type: "blob" })
+                .then(function (content) {
+  	                saveAs(content, "decision_letters.zip");
+        });
+        */
+        
+        
+    
+        
+    }//end of function
 
 
     function convertToPDF() {
@@ -50,6 +72,7 @@
         console.log(fileNames);
         //html2canvas(document.querySelector())
     }
+    
     /*
     function downloadPages(){
         
@@ -167,51 +190,111 @@
             //Dimensions 
             //US Letter at 72dpi (web view): 612 pixels x 792 pixels
             //US Letter at 300dpi (print): 2550 pixels x 3300 pixels
-            customBodyDiv.className = "letterDiv" + i;
-            letterDivNames.push("letterDiv" + i);
+
+            //Margins Top: 0.92", Bottom: 1.25", Left: 1.75", Right: 1"
+
+            customBodyDiv.setAttribute("class", "letterDiv");
+            customBodyDiv.setAttribute('id', 'id' + i)
+            letterDivNames.push("id" + 1);
 
             customBodyDiv.style.width = '612px'; //8.5in
             customBodyDiv.style.height = '792px'; //11in
-            customBodyDiv.style.borderStyle = 'solid';
+            //customBodyDiv.style.borderStyle = 'solid';
 
+        
             let logoImg = document.createElement('img');
+            logoImg.setAttribute('class', 'primary-logo');
+            logoImg.setAttribute('id', 'primary-logo' + i);
             logoImg.setAttribute('src', './primary-logo.PNG');
-            logoImg.setAttribute('width', '100px');
-            logoImg.setAttribute('height', '100px');
             
+            let messageDiv = document.createElement('div');
+            messageDiv.setAttribute('id', 'message-div');
+
             let p1 = document.createElement('p');
-            p1.innerHTML = "Dear " + firstNamesArray[i] + ",\n";
+            p1.innerHTML = "Dear " + firstNamesArray[i] + " " + lastNamesArray[i] + "," + "<br />";
+            p1.innerHTML += "<br />" + "I regret to inform you that your application for admission to the graduate program in Electrical and Computer Engineering (ECE) has been denied by the ECE Graduate Admissions Committee. This decision is due to our inability to provide you with ";
+            p1.innerHTML += "adequate faculty advising or financial support and in no way implies a lack of academic excellence on your part."
+            
+            //next paragraph
+            p1.innerHTML += "<br />" + "<br />" + "Admission decisions are based on a composite of information which include academic standing of the program in which you have studied, educational preparation for your field, grades, test scores, the statement of purpose, letters of recommendation, relevant professional activities, and the admission committee's judgment of your potential for graduate studies and research. In your case, you were judged to be a good candidate for our graduate program. Unfortunately, at this time we could not identify an appropriate research advisor or a reliable source of funds that could support you during your graduate studies."
+
+
+            //next paragraph
+            p1.innerHTML += "<br />" + "<br />" + "Please do not hesitate to contact me at mzefran@uic.edu if you would like to further discuss this admission decision.";
+
+            //next paragraph
+            p1.innerHTML += "<br />" + "<br />" + "We appreciate the interest you have shown in the Electrical and Computer Engineering Department at the University of Illinois at Chicago, and we wish you success in your career.";
+
+            //next paragraph
+            p1.innerHTML += "<br />" + "<br />" + "Sincerely,";
+
+
             
             let p2 = document.createElement('p');
-            p2.innerHTML = "We are grateful you applied.\n";
+            p2.innerHTML += "";
+
 
             let p3 = document.createElement('p');
             let decision = (acceptanceArray[i] == 'accepted') ? 'accept' : 'denied';
-            p3.innerHTML = "We had decided to " + decision + " your application.";
+            p3.innerHTML += "We had decided to " + decision + " your application.";
             
             let p4 = document.createElement('p');
-            p4.innerHTML = "The reason being your score was " + scoresArray[i] + ".";
+            p4.innerHTML += "The reason being your score was " + scoresArray[i] + ".";
 
             let p5 = document.createElement('p');
-            p5.innerHTML = "Thank you " + firstNamesArray[i] + ".";
+            p5.innerHTML += "Thank you " + firstNamesArray[i] + ".";
 
             let p6 = document.createElement('p');
-            p6.innerHTML = "Sincerely, ";
+            p6.innerHTML += "Sincerely, ";
 
             let p7 = document.createElement('p');
-            p7.innerHTML = "University Admissions";
+            p7.innerHTML = "Miloš Žefran " + "<br />" + "Director of Graduate Studies";
+
+            let signature = document.createElement('img');
+            signature.setAttribute('class', 'signature');
+            signature.setAttribute('id', 'signature' + i);
+            signature.setAttribute('src', './Signature.png');
+
+            logoImg.setAttribute('class', 'primary-logo');
+            logoImg.setAttribute('id', 'primary-logo' + i);
+            logoImg.setAttribute('src', './primary-logo.PNG');
+
+            let footer = document.createElement('div');
+            footer.setAttribute('class', 'footer');
+
+            let footerLeft = document.createElement('p');
+            footerLeft.setAttribute('class', 'footer-left');
+            let collegeName = "Department of Electrical and Computer Engineering " + "<br />" + "College of Engineering"
+            footerLeft.innerHTML += collegeName.bold();
+            footerLeft.innerHTML += "<br />" + "851 S. Morgan St., 1020 SEO (MC 251)" + "<br />" + "Chicago, IL 60607-7053";
+
+
+            let footerRight = document.createElement('p');
+            footerRight.setAttribute('class', 'footer-right');
+            footerRight.innerHTML += "<br />" + "Phone  (312) 355-1312" + "<br />";
+            footerRight.innerHTML += "Fax    (312) 996-6465" + "<br />";
+            footerRight.innerHTML += "Web    ece.uic.edu";
+
+            footer.appendChild(footerRight);
+            footer.appendChild(footerLeft);
+
+
+            messageDiv.appendChild(p1);
+            //messageDiv.appendChild(p2);
+            //messageDiv.appendChild(p3);
+            //messageDiv.appendChild(p4);
+            //messageDiv.appendChild(p5);
+            //messageDiv.appendChild(p6);
+            messageDiv.appendChild(signature);
+            messageDiv.appendChild(p7);
 
             customBodyDiv.appendChild(logoImg);
-            customBodyDiv.appendChild(p1);
-            customBodyDiv.appendChild(p2);
-            customBodyDiv.appendChild(p3);
-            customBodyDiv.appendChild(p4);
-            customBodyDiv.appendChild(p5);
-            customBodyDiv.appendChild(p6);
-            customBodyDiv.appendChild(p7);
+            customBodyDiv.appendChild(messageDiv);
             
             let breakLine = document.createElement("br");
             customBodyDiv.appendChild(breakLine);
+
+            customBodyDiv.appendChild(footer);
             
             mailBodyDiv.appendChild(customBodyDiv);
         }

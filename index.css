@@ -1,4 +1,49 @@
 #mail-body{
     font-family: "Times New Roman", Times, serif;
-    font-size: 11px;
+    
+}
+
+.letterDiv {
+    
+    padding-top: 88.32px;
+    padding-bottom: 120px;
+    padding-left: 168px;
+    padding-right: 96px;
+    
+}
+
+.message-div{
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+.primary-logo{
+    width: 120px;
+    height: 150px;
+    position: relative;
+    top: -70px;
+    left: -150px;
+}
+
+
+.signature{
+    width: 100px;
+    height: 40px;
+}
+
+.footer{
+    color: red;
+    font-family: "Cambria";
+}
+
+.footer-right{
+    margin-top: 0px;
+    float: right;
+    margin-right: 150px;
+    font-size: 12px;
+
+}
+
+.footer-left{
+    float: left;
+    font-size: 12px;
 }
